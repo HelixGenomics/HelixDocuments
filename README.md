@@ -6,7 +6,7 @@ Privacy-first DNA analysis platform. Upload a consumer genetic data file, get 96
 
 | Metric | Value |
 |--------|-------|
-| Polygenic Risk Scores | 1,200+ (PGS Catalog) |
+| Polygenic Risk Scores | 3,500+ (PGS Catalog) |
 | Curated PRS Traits | 44 (coverage-optimized, ML-corrected) |
 | Ancestry Populations | 5 (EUR, AFR, EAS, SAS, AMR) + blended |
 | ClinVar variants scanned | 400,000+ |
