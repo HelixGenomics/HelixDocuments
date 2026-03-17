@@ -1,75 +1,122 @@
-# Helix PRS Tools
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776ab?style=for-the-badge&logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/PyTorch-GPU_Accelerated-ee4c2c?style=for-the-badge&logo=pytorch&logoColor=white" alt="PyTorch">
+  <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" alt="MIT">
+</p>
 
-Standalone Python scripts for polygenic risk score (PRS) research using publicly available data. These tools were developed during the Helix Sequencing PRS accuracy improvement pipeline and are shared for the benefit of the genomics research community.
+<h1 align="center">🧬 Helix PRS Tools</h1>
+
+<p align="center">
+  <strong>Standalone Python scripts for polygenic risk score research.</strong><br>
+  <em>All tools work with publicly available data. No proprietary datasets required.</em>
+</p>
+
+---
+
+## ⭐ Headline Tool: PGP Deep Scraper
+
+> **`deep-scrape-pgp.py`** — The only open-source tool that collects **real genotype data paired with real medical records** from a public dataset.
+
+The [Harvard Personal Genome Project](https://my.pgp-hms.org/) has **943+ participants** who publicly share both their DNA data and their complete medical histories. This is the gold standard for PRS validation — real chip data, real diagnoses, real outcomes.
+
+Our scraper extracts:
+- **Structured disease diagnoses** mapped to ICD categories
+- **Survey responses** (demographics, family history, medications)
+- **Genotype file locations** for direct download
+- **Phenotype JSON** ready for automated PRS validation
+
+No other public dataset gives you genotypes + clinical outcomes at this scale. Most PRS validation uses self-reported traits (height, hair colour). This gives you **doctor-confirmed diagnoses** — cancer, cardiovascular disease, autoimmune conditions, metabolic disorders.
+
+```bash
+python3 deep-scrape-pgp.py --output pgp-phenotypes.json
+# → 943 profiles, 579 with medical conditions, 911 unique diagnoses
+```
+
+---
 
 ## Prerequisites
 
 - Python 3.10+
-- Dependencies vary per script (see headers) — common: `numpy`, `scipy`, `torch` (for GPU scripts)
-- Access to [PGS Catalog](https://www.pgscatalog.org/) API
-- For validation: [OpenSNP Frei 2024 dataset](https://zenodo.org/records/10715132) (4,257 QC'd genomes)
-- For phenotype validation: [Harvard PGP](https://my.pgp-hms.org/) profiles
+- Common: `numpy`, `scipy`, `requests`
+- GPU scripts: `torch` with CUDA (tested on RTX 3060 Ti, 8GB VRAM)
+- [PGS Catalog](https://www.pgscatalog.org/) API access (free)
+- [OpenSNP Frei 2024](https://zenodo.org/records/10715132) dataset (4,257 QC'd genomes) for validation
+- [Harvard PGP](https://my.pgp-hms.org/) profiles for phenotype validation
 
-## Tools
+---
 
-### Data Collection
+## 📦 Data Collection
 
-| Script | Description |
-|--------|-------------|
-| `deep-scrape-pgp.py` | Scrape PGP profiles for medical records, survey responses, and phenotype data. Extracts structured disease diagnoses from 943+ participants for PRS validation. |
-| `download-ancestry-pgs.py` | Bulk download PGS scoring files from the PGS Catalog FTP. Converts to compact gzipped TSV format (rsid/ea/oa/weight). 20 parallel workers. |
-| `fetch-pgs-metadata.py` | Fetch ancestry metadata for all PGS models via the PGS Catalog REST API. Builds a per-trait, per-ancestry model selection map scoring each model on variant count, GWAS ancestry representation, and sample size. |
-| `find-missing-ancestry.py` | Scan the PGS Catalog for multi-ancestry models not yet downloaded. Identifies models with >5% non-EUR ancestry representation. |
+| Script | What It Does |
+|:-------|:-------------|
+| **`deep-scrape-pgp.py`** | Scrape 943+ PGP profiles — genotypes + medical records + surveys. Extracts structured disease diagnoses for PRS validation. **The key tool for clinical ground truth.** |
+| `download-ancestry-pgs.py` | Bulk download PGS Catalog scoring files. Converts to compact gzipped TSV. 20 parallel workers. |
+| `fetch-pgs-metadata.py` | Fetch ancestry metadata for all PGS models via REST API. Builds per-trait, per-ancestry model selection map. |
+| `find-missing-ancestry.py` | Find multi-ancestry models not yet downloaded. Identifies models with >5% non-EUR representation. |
 
-### Mapping & QC
+## 🔬 Mapping & QC
 
-| Script | Description |
-|--------|-------------|
-| `smart-condition-mapper.py` | Map free-text clinical conditions (from PGP profiles) to standardized PRS trait names. Handles abbreviation expansion (CAD, HTN, COPD), qualifier stripping, keyword matching against 170+ patterns, and multi-level confidence scoring. Includes a built-in test suite. |
+| Script | What It Does |
+|:-------|:-------------|
+| **`smart-condition-mapper.py`** | Map free-text clinical conditions to PRS trait names. Handles abbreviations (CAD, HTN, COPD), qualifier stripping, keyword matching against 170+ patterns. Built-in test suite. |
 | `check-allele-alignment.py` | Verify allele alignment between PGS effect alleles and genotype data. Catches strand flips and complement mismatches that cause systematic scoring errors. |
 
-### Scoring
+## ⚡ Scoring
 
-| Script | Description |
-|--------|-------------|
-| `score-1kg-mega.py` | Score all 2,504 1000 Genomes Phase 3 samples against PGS models from a mega SQLite database. Produces per-ancestry (EUR/AFR/EAS/SAS/AMR) population distributions for percentile estimation. Parallelized across chromosomes and models. |
-| `build-pipeline-gpu.py` | Full GPU-accelerated PRS scoring pipeline. Handles VCF parsing, allele alignment, batched scoring against 3,550 models (2.37B variant weights), and distribution building. Designed for Vast.ai instances with 256+ vCPUs and GPU. |
-| `validate-opensnp-gpu-v2.py` | GPU-accelerated PRS validation against 4,257 OpenSNP genomes. Loads a 6.2GB sparse weight matrix, performs chunked sparse matrix multiplication on GPU, validates against height/hair/eye phenotypes. Reports Pearson r, AUC, and per-ancestry distributions. |
+| Script | What It Does |
+|:-------|:-------------|
+| `score-1kg-mega.py` | Score all 2,504 1000 Genomes samples across 5 ancestries (EUR/AFR/EAS/SAS/AMR). Builds population distributions for percentile estimation. |
+| **`build-pipeline-gpu.py`** | Full GPU pipeline — VCF parsing, allele alignment, batched scoring against 3,550 models (2.37B weights). Built for cloud GPU instances. |
+| `validate-opensnp-gpu-v2.py` | GPU validation against 4,257 OpenSNP genomes. 6.2GB sparse weight matrix, chunked sparse multiplication. Reports Pearson r, AUC, per-ancestry distributions. |
 
-### Validation & Selection
+## ✅ Validation & Selection
 
-| Script | Description |
-|--------|-------------|
-| `validate-pgp.py` | Validate PRS scores against PGP phenotype data. Computes AUC for binary traits (disease case/control) and Pearson r for continuous traits (height, BMI). Maps PGP medical conditions to PGS models. |
-| `select-best-models.py` | Combine PGP + OpenSNP validation results and select the best PGS model per trait per ancestry. Outputs `best-models.json` for production deployment. |
+| Script | What It Does |
+|:-------|:-------------|
+| **`validate-pgp.py`** | Validate PRS against PGP phenotypes — AUC for disease case/control, Pearson r for continuous traits. Uses the medical records from `deep-scrape-pgp.py`. |
+| `select-best-models.py` | Combine PGP + OpenSNP results → select best PGS model per trait per ancestry → `best-models.json` for production. |
 
-## Data Flow
+---
+
+## 🔄 Data Flow
 
 ```
-PGS Catalog ──[download-ancestry-pgs.py]──> Compact scoring files
+PGS Catalog ──[download-ancestry-pgs.py]──► Compact scoring files
      │
-     └──[fetch-pgs-metadata.py]──> Per-ancestry model selection map
+     └──────[fetch-pgs-metadata.py]───────► Per-ancestry model map
 
-Harvard PGP ──[deep-scrape-pgp.py]──> Phenotype JSON
+Harvard PGP ──[deep-scrape-pgp.py]────────► Phenotype JSON (943 profiles)
+     │                                        │
+     │                                        ├── 579 with medical conditions
+     │                                        ├── 911 unique diagnoses
+     │                                        └── Genotype download links
      │
-     └──[smart-condition-mapper.py]──> Standardized trait mappings
+     └──────[smart-condition-mapper.py]───► Standardized trait mappings
 
-1000 Genomes ──[score-1kg-mega.py]──> Population distributions (5 ancestries)
+1000 Genomes ─[score-1kg-mega.py]─────────► Population distributions (5 ancestries)
 
-OpenSNP ──[validate-opensnp-gpu-v2.py]──> Validation metrics (r, AUC)
+OpenSNP ──────[validate-opensnp-gpu-v2.py]► Validation metrics (r, AUC)
 
-PGP Genomes ──[validate-pgp.py]──> Disease AUC per model
+PGP Genomes ──[validate-pgp.py]───────────► Disease AUC per model
 
-All results ──[select-best-models.py]──> Production best-models.json
+All results ──[select-best-models.py]─────► Production best-models.json
 ```
 
-## Notes
+---
 
-- All scripts use hardcoded paths from our build environment. You'll need to update paths for your setup.
-- GPU scripts require PyTorch with CUDA support and were tested on RTX 3060 Ti (8GB VRAM).
-- The mega SQLite database (`pgs-mega.db`, 174GB) is not included — build it using the PGS Catalog bulk downloads.
-- These tools work with publicly available datasets only (PGS Catalog, 1000 Genomes, OpenSNP, Harvard PGP).
+## ⚠️ Notes
 
-## License
+- Scripts use hardcoded paths from our build environment — update for your setup
+- GPU scripts require PyTorch + CUDA (tested on RTX 3060 Ti, 8GB VRAM)
+- The mega SQLite database (`pgs-mega.db`, 174GB) is not included — build from PGS Catalog bulk downloads
+- All tools use **publicly available datasets only**
 
-MIT — use freely for research purposes.
+---
+
+## 📄 License
+
+MIT — use freely for any purpose.
+
+<p align="center">
+  <a href="https://github.com/HelixGenomics/helix-open-research">← Back to Helix Open Research</a>
+</p>
