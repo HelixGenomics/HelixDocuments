@@ -18,7 +18,6 @@ Privacy-first DNA analysis platform. Upload a consumer genetic data file, get 2,
 | AI agents per report | 6 parallel (domain-specialized, sex-aware) |
 | Analysis time | <2 min standard, ~3-5 min imputed |
 | Data retention | Zero |
-| Pricing | $50 one-time or $10 + $5/mo subscription |
 
 ---
 
