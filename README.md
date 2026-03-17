@@ -1,424 +1,66 @@
-# Helix Sequencing
+# Helix Open Research
 
-Privacy-first DNA analysis platform. Upload a consumer genetic data file, get 2,800+ polygenic risk scores with ancestry-optimized model selection, pathogenic variant scanning, pharmacogenomics with star allele calling, and AI-powered longevity protocols — with zero data retention.
+**Open research, open tools, open journey.**
 
-## Key Numbers
+This repository exists because genomics is too important to build behind closed doors.
 
-| Metric | Value |
-|--------|-------|
-| Polygenic Risk Scores | 3,550+ models (PGS Catalog — full ancestry coverage) |
-| Scored PRS Traits | 2,800+ (with population distributions) |
-| Curated PRS Traits | 57 (coverage-optimized, ML-corrected) |
-| Ancestry Populations | 5 (EUR, AFR, EAS, SAS, AMR) + blended |
-| ClinVar variants scanned | 400,000+ |
-| SNPedia annotations | 16,000+ |
-| Pharmacogenes (CPIC) | 34 genes, 110K+ diplotypes |
-| Imputed variants | ~28M (Beagle 5.5) |
-| Reference allele freqs | 3.5M variants × 6 populations |
-| AI agents per report | 6 parallel (domain-specialized, sex-aware) |
-| Analysis time | <2 min standard, ~3-5 min imputed |
-| Data retention | Zero |
+We're building [Helix Sequencing](https://helixsequencing.com) — a privacy-first DNA analysis platform that turns consumer genotype files into actionable health insights using 3,550+ polygenic risk scores, pharmacogenomics, pathogenic variant scanning, and AI-powered longevity protocols.
 
----
+Along the way, we've learned hard lessons about PRS accuracy, spent money on experiments that didn't work, hit walls that nobody warned us about, and figured things out that we think other people should know. So we're sharing all of it — the wins, the failures, the code, and the data.
 
-## Data Sources
+## Why Open?
 
-All integrated into a unified 2GB SQLite database (`helix-unified.db`), indexed by rsID for instant lookup during analysis.
+Polygenic risk scoring sits at the intersection of genomics and longevity science. The potential is enormous: identify your genetic predispositions before they manifest, intervene early, live longer and healthier. But the field is fragmented. Academic papers describe methods in theory. Commercial platforms keep their implementations proprietary. Nobody publishes the engineering reality — what actually works when you try to score 3,550 models against real consumer DNA data, what breaks, and what it costs.
 
-| Source | Table | Records | Used For |
-|--------|-------|---------|----------|
-| [PGS Catalog](https://www.pgscatalog.org/) | Score files | 3,550+ models, 2.37B weights | Polygenic risk scoring |
-| [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) | `clinvar` | 400,000+ | Pathogenic variant identification |
-| [SNPedia](https://www.snpedia.com/) | `snpedia` | 16,000+ | Variant annotations and phenotype associations |
-| [MyVariant.info](https://myvariant.info/) | `myvariant_cadd` | 2,699,063 | CADD deleteriousness scores |
-| [MyVariant.info](https://myvariant.info/) | `myvariant_gnomad` | 2,571,921 | gnomAD population allele frequencies |
-| [MyVariant.info](https://myvariant.info/) | `myvariant_clinvar_enriched` | — | ClinVar star ratings and review status |
-| [MyDisease.info](https://mydisease.info/) | `mydisease_genes` | — | Gene-disease associations |
-| [MyChem.info](https://mychem.info/) | `mychem_drugs` | — | Drug compound data for PGx |
-| [CPIC](https://cpicpgx.org/) | `cpic_*` (6 tables) | 34 genes, 110K+ diplotypes | Star allele calling, drug recommendations |
-| [DisGeNET](https://www.disgenet.org/) | `disgenet` | — | Gene-disease network associations |
-| [GWAS Catalog](https://www.ebi.ac.uk/gwas/) | `gwas` | — | Genome-wide association study results |
-| [Orphanet](https://www.orpha.net/) | `orphanet` | — | Rare disease classifications |
-| [PharmGKB](https://www.pharmgkb.org/) | `pharmgkb_annotations` | — | Pharmacogenomic drug-gene annotations |
-| [AlphaMissense](https://alphamissense.hegelab.org/) | `alphamissense` | — | AI protein pathogenicity predictions |
-| [ClinGen](https://clinicalgenome.org/) | `clingen_validity`, `clingen_dosage` | — | Gene-disease clinical validity and dosage sensitivity |
-| [1000 Genomes](https://www.internationalgenome.org/) | Allele freq files | 3.5M variants × 6 populations | Population reference frequencies, imputation panel |
+We believe this needs to change.
 
----
+The promise of genomics-informed longevity won't be realized by any single team working in isolation. It requires collective effort — researchers, engineers, clinicians, and individuals all contributing to a shared understanding of what genetic risk scores can and cannot tell us. The faster we share what we learn, the faster everyone benefits.
 
-## Polygenic Risk Scoring (PRS) — Deep Dive
+This repository is our contribution to that effort. Everything here is published with the hope that it saves someone else time, money, or frustration — and that it moves the entire field forward, even if only by a small step.
 
-### Overview
+## What's Here
 
-The PRS engine scores an individual's genetic predisposition across 960+ traits using published polygenic score models from the [PGS Catalog](https://www.pgscatalog.org/). A curated subset of 44 traits is presented in reports, selected for clinical relevance and chip/imputation coverage.
+### Engineering Journal
 
-### Scoring Pipeline
-
-#### 1. Variant Loading
-
-Two genotype sources are supported:
-
-- **Chip-only (~608K variants):** Direct genotype calls from consumer DNA chips (23andMe, MyHeritage, AncestryDNA, etc.). Parsed as hard-call alleles (e.g., `AG`, `TT`).
-- **Imputed (~28M variants):** Beagle 5.5 imputation against 1000 Genomes Phase 3 reference panel. Stored in SQLite with continuous dosage values (0.0–2.0) and genotype posterior probability (`gp_max`).
-
-```
-Chip:     rsid → "AG"           (discrete allele pair)
-Imputed:  rsid → {ref: "A", alt: "G", dosage: 1.03, gp_max: 0.94}
-```
-
-#### 2. Dosage Calculation
-
-For each PGS variant, the effect allele dosage is computed:
-
-- **Chip mode:** Count occurrences of the effect allele in the genotype string (0, 1, or 2).
-- **Imputed mode:** Map the dosage field based on whether the effect allele matches `alt` (use dosage directly) or `ref` (use `2 - dosage`).
-
-**Strand-ambiguous SNP handling (A/T and C/G pairs):**
-- Only **direct allele matching** is used — no complement flipping.
-- This prevents the systematic bias where complement matching would assign dosage=2 to all strand-ambiguous variants, inflating scores for PGS models with many such variants.
-- All three layers (getDosage, getEurFreq, frequency file builder) enforce this consistently.
-
-#### 3. Raw Score Computation
-
-```
-raw_score = SUM(dosage_i * weight_i)  for all matched variants
-```
-
-Where `weight_i` comes from the PGS Catalog effect weights.
-
-#### 4. Percentile Calculation (Three-Tier)
-
-**Primary — Empirical distribution (preferred):**
-- Raw score is ranked against pre-computed scores from 503 EUR samples (1000 Genomes Phase 3).
-- Population distributions are available for 6 groups: EUR, AFR, EAS, SAS, AMR, ALL.
-- Binary search gives the exact percentile position.
-- Clamped to [0.1%, 99.9%].
-
-**Fallback — Frequency-based z-score:**
-- When no population distribution exists, the expected mean and variance are computed from European allele frequencies:
-  ```
-  E[score] = SUM(2 * p_i * w_i)
-  Var[score] = SUM(2 * p_i * (1-p_i) * w_i^2)
-  ```
-- Scale factor `matched/freqMatched` compensates for variants missing frequency data.
-- Z-score clamped to [-3.5, +3.5], converted to percentile via normal CDF.
-
-**Last resort — Population statistics:**
-- Uses pre-computed population mean/std when available.
-
-#### 5. Confidence Assessment
-
-Each score receives a confidence rating based on variant coverage:
-
-| Confidence | Chip Coverage | Imputed Coverage |
-|-----------|--------------|-----------------|
-| High | >= 70% | >= 60% effective |
-| Moderate | >= 40% | >= 40% effective |
-| Low | >= 15% | >= 20% effective |
-| Unreliable | < 15% | < 20% effective |
-
-**Imputation quality weighting:**
-- High quality (GP >= 0.9): counts fully
-- Medium quality (GP 0.7–0.9): counts at 50%
-- Low quality (GP < 0.7): discounted
-- Effective coverage = `(HQ + MQ*0.5) / total_variants`
-
-#### 6. Curated SCORE_CONFIG (44 Traits)
-
-Models were selected by maximizing chip coverage for reliability, with imputed coverage as secondary criteria:
-
-| Category | Traits | Example PGS | Chip Coverage |
-|----------|--------|-------------|---------------|
-| Cardiovascular | CAD, Atrial Fib, Stroke, LDL, HDL, Triglycerides, PE | PGS000058 | 35–97% |
-| Cancer | Breast, Colorectal, Prostate, Pancreatic, Testicular | PGS000028 | 51–97% |
-| Metabolic | T2 Diabetes, BMI, WHR, HbA1c | PGS000125 | 62–100% |
-| Neurological | Alzheimer's, Alzheimer's (APOE), Depression, ADHD | PGS000053 | 48–91% |
-| Anthropometric | Height, Bone Density, Grip Strength, Lean Mass | PGS000297 | 11–93% |
-| Autoimmune | Celiac, Crohn's, UC, Asthma | PGS000316 | 16–84% |
-| Appearance | Skin Pigmentation, Hair Colour | PGS001244 | 14–17% |
-| Behavioral | Risk-Taking, Cannabis Use, Nicotine Dependence | PGS001049 | 14–24% |
-| Biomarkers | Uric Acid, Testosterone, CRP, IGF-1, Lp(a) | PGS000321 | 13–94% |
-
-### Dual Coverage Reference
-
-Every PRS result includes coverage metadata for transparency:
-
-```json
-{
-  "coverage": {
-    "matched": 200,
-    "total": 204,
-    "pct": 0.98,
-    "chip_expected": 35.3,
-    "imputed_raw": 98.0,
-    "imputed_effective": 62.4
-  }
-}
-```
-
-### Ancestry-Aware Scoring
-
-**Ancestry detection:** 14 ancestry-informative markers (AIMs) are used to classify the user's genetic ancestry as EUR, AFR, EAS, SAS, or AMR using Hardy-Weinberg log-likelihood scoring. Key markers include SLC24A5 (skin pigmentation), EDAR (hair thickness, EAS), and Duffy null (malaria resistance, AFR).
-
-**Population-specific scoring:**
-- Detected ancestry selects the appropriate reference population for both allele frequencies and distribution comparisons.
-- Multi-ancestry allele frequencies are pre-computed from 1000 Genomes Phase 3: EUR (503 samples), AFR (661), EAS (504), SAS (489), AMR (347).
-- For mixed ancestry (low confidence calls), percentiles are blended proportionally using softmax of AIM log-likelihoods across all populations.
-
-**Ancestry-aware ML correction:**
-- Ridge regression models include ancestry proportions as features: `[score, score², coverage, EUR%, AFR%, EAS%, SAS%, AMR%]`
-- Trained on all 2,504 1000G samples (not EUR-only), so the model learns population-specific score adjustments.
-- Per-population R² is tracked for each PGS model to assess cross-ancestry portability.
-
-### ML Correction Pipeline (v3)
-
-**Strand-ambiguous fix (v5 distributions):**
-- Previous distributions (v4) skipped all A/T and C/G variants, but server scoring included them with direct matching.
-- This caused systematic inflation for PGS with many strand-ambiguous variants (e.g., Height: 477/3290 = 14.5% ambiguous, 99.8% positive weights → z-score of 14+).
-- v5 distributions now use the EXACT same scoring logic as the server, including direct matching for strand-ambiguous SNPs.
-
-**Training pipeline:**
-1. Score all 2,504 1000G samples across 22 chromosomes using harmonized PGS files with position-based matching.
-2. Simulate chip-only scores by restricting to ~609K consumer chip positions.
-3. Simulate imputed scores by adding ~20% noise to non-chip variant contributions.
-4. Train per-PGS ancestry-aware Ridge regression models (44 models × chip + imputed).
-5. Features: `[raw_score, raw_score², coverage, EUR%, AFR%, EAS%, SAS%, AMR%]`.
-6. Cross-validated R² > 0.93 for imputed models; chip models variable (0.17–0.99) depending on coverage.
-
-**Deployment:**
-- Correction coefficients stored in `data/correction-models.json` (66KB).
-- Applied at scoring time in Node.js — zero Python dependency at runtime.
-- Backward-compatible: detects `ridge_ancestry` model type, falls back to legacy 3-coefficient model.
-
-### Known Limitations
-
-- PRS captures common variant risk only — rare pathogenic mutations are handled separately via ClinVar.
-- Education/behavioral traits have low individual predictive power (population R² ~ 0.1).
-- Hair color PGS can score high for blonde individuals on a "red hair" model (shared MC1R variants).
-- PGS were predominantly developed in European cohorts; cross-ancestry performance varies by trait.
-- Chip-only coverage limits accuracy for large PGS models (>5000 variants) — imputation strongly recommended.
-
----
-
-## Pharmacogenomics (PGx)
-
-### Dynamic Gene Coverage
-
-34 pharmacogenes loaded dynamically from CPIC database (level A, A/B, and B evidence):
-
-```
-CYP2C9, CYP2C19, CYP2D6, CYP3A5, CYP4F2, DPYD, G6PD, NUDT15,
-SLCO1B1, TPMT, UGT1A1, VKORC1, CYP2B6, CYP3A4, HLA-A, HLA-B, ...
-```
-
-### Star Allele Calling
-
-CPIC allele definitions are loaded from the unified SQLite database (1,324 allele definitions across all pharmacogenes). For each gene:
-
-1. **Load defining positions** from `cpic_sequence_locations` (rsID-mapped)
-2. **Check user genotypes** at each defining position
-3. **Score non-reference alleles** by matching defining variant patterns
-4. **Determine zygosity** (homozygous vs heterozygous) from allele counts
-5. **Fall back to reference** (*1) when no variant alleles match
-6. **Look up diplotype phenotype** from `cpic_diplotypes` (110,346 entries)
-
-Example output:
-```
-CYP2C9:  *1/*2  → Intermediate Metabolizer (6/6 positions covered)
-CYP3A5:  *3/*3  → Poor Metabolizer (1/1 positions covered)
-G6PD:    B/B    → Normal (3/3 positions covered)
-```
-
-### Clinical Data Integration
-
-Three layers of pharmacogenomic data are provided per gene:
-
-- **CPIC Recommendations:** Phenotype-specific dosing guidance with classification (Strong/Moderate)
-- **CPIC Pairs:** Gene-drug interaction evidence levels
-- **PharmGKB Annotations:** Variant-level drug-phenotype associations with significance scores
-
-### Drug API
-
-- `GET /api/drugs?q=warfarin` — Autocomplete search by drug name or gene
-- `GET /api/drugs/:name` — Full detail with recommendations, gene pairs, and annotations
-
----
-
-## Features
-
-### DNA File Upload & Parsing
-- **Supported formats:** 23andMe, AncestryDNA, MyHeritage, FamilyTreeDNA, Nebula Genomics, VCF, zip archives
-- Auto-format detection from file headers with filename-based fallback
-- 100MB max file size, rate-limited (20 uploads/hour/IP)
-- Beta access control via single-use codes (HELIX-XXXX-XXXX)
-
-### Pathogenic Variant Scanning
-- Full ClinVar database matching (400,000+ entries)
-- Filters: pathogenic, likely pathogenic, risk factors, drug response
-- SNPedia annotation matching (16,000+ entries) with gene, summary, and wiki content
-- Deduplication across sources (ClinVar prioritized)
-
-### Convergence Detection
-- **9 disease pathway groups:** gastrointestinal cancer, digestive, cardiovascular, cardiometabolic, respiratory, neurodegenerative, mental health, autoimmune, kidney
-- Intra-PRS convergence: flags when multiple scores in same pathway are elevated
-- ClinVar+PRS convergence: monogenic pathogenic variants corroborated by polygenic risk
-- Gene-to-category mapping (BRCA1/2, TP53, SCN5A, APOE, etc.)
-
-### Deep Imputation (Optional)
-- Beagle 5.5 imputation expands ~600K chip variants to ~28M
-- 1000 Genomes Phase 3 reference panel, per-chromosome processing
-- Imputed genotypes stored in SQLite with dosage and quality scores (gp_max)
-- Quality tiers: High (GP >= 0.9), Medium (GP 0.7–0.9), Low (GP < 0.7)
-- Typically ~50% high quality, ~25% medium, ~25% low for consumer chip data
-- Progress tracking per chromosome with real-time status updates
-
-### AI-Powered Protocols
-- Claude generates personalized longevity protocols
-- Input: top risks, strengths, convergence signals, ClinVar findings, PGx phenotypes, filtered variants
-- Output: executive summary, domain summaries (cardiac, cancer, metabolism, brain, immune, drug, longevity), supplement recommendations (tiered), training protocols, lifespan interventions
-- SNP-level annotations with category, risk, importance, and descriptions
-
-### Reports & Export
-- **Interactive HTML report** with Dashboard, Explorer, and Protocols tabs
-- **4 PDF formats:**
-  - Health Summary — essential PRS, risk stratification, key findings (~10-15 pages)
-  - Doctor's Report — pharmacogenomics, drug-gene interactions, clinical format (~15-25 pages)
-  - Full Analysis — all traits, complete ClinVar/SNPedia, convergence, protocols (~30-50 pages)
-  - Health Protocol — actionable supplement and lifestyle interventions
-- **JSON export** — machine-readable genetic profile for AI assistants
-- **CSV export** — tabular data
-- **Email delivery** via Resend API with all PDF attachments
-
-### Variant Explorer
-- Browse all matched ClinVar and SNPedia variants
-- Side panel with gene name, genotype, significance, phenotype, related traits
-- Searchable and filterable by source
-
-### Trait Classification
-- **Importance tiers:** essential (cancer, cardiovascular, metabolic, neurological, etc.), useful (biomarker, musculoskeletal, cognitive, etc.), technical
-- **Polarity detection:** high-is-bad vs high-is-good per trait
-- Auto-generated trait dictionary with friendly names, categories, and domain summaries
-
-## Privacy & Security
-
-### Zero Data Retention
-
-- **Genetic data exists in volatile memory only** — deleted immediately after analysis completes
-- Uploaded DNA files are unlinked from disk the moment scoring finishes (before the HTTP response)
-- Reports, PDFs, and all intermediate files are automatically purged after 2 hours
-- No user accounts, no cookies, no tracking, no IP logging
-- Email used only for report delivery — not stored after send
-
-### Cryptographic Deletion Certificates
-
-Every user receives an automated **Data Deletion Certificate** when their data is purged:
-
-- **SHA-256 attestation hash** — deterministic proof that the certificate was generated by the server at a specific time: `SHA256(certificateId:jobId:deletedAt:salt)`
-- **PDF certificate** attached to the email — one-page document listing every data category destroyed
-- **Append-only audit log** (`deletion-log.jsonl`) — tamper-evident record of all deletions (contains no genetic data, only masked emails and certificate hashes)
-
-**Deleted items attested per certificate:**
-1. Uploaded DNA genotype file
-2. Imputation intermediate files (if applicable)
-3. Genomic report (HTML, JSON data)
-4. PRS scoring results
-5. ClinVar & SNPedia match data
-6. AI-generated health protocols
-7. PDF reports
-8. Job metadata and session data
-
-**Deletion timeline:**
-- DNA file: deleted immediately after analysis (~2 minutes)
-- All other data: deleted 2 hours after upload
-- Certificate email: sent automatically at deletion time
-- Server restart recovery: stale jobs are cleaned up and certificates sent on boot
-
-### Infrastructure Security
-
-- Path traversal protection via UUID validation on all endpoints
-- AI processing via local Claude CLI (no external data transmission)
-- Rate limiting on uploads (20/hour/IP)
-- File size limits (100MB max)
-- Single concurrent analysis to prevent resource exhaustion
-
-## API Endpoints
-
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/validate-beta` | Validate a beta access code |
-| POST | `/api/upload` | Upload DNA file (multipart form) |
-| POST | `/api/analyze` | Start analysis (standard or imputed) |
-| GET | `/api/status/:jobId` | Real-time job progress |
-| GET | `/api/imputation-available` | Check if imputation is configured |
-| GET | `/api/drugs?q=` | Drug autocomplete search |
-| GET | `/api/drugs/:name` | Drug detail with PGx recommendations |
-| GET | `/api/pdf/compact/:report` | Download health summary PDF |
-| GET | `/api/pdf/doctor/:report` | Download doctor's report PDF |
-| GET | `/api/pdf/full/:report` | Download full analysis PDF |
-| GET | `/api/pdf/protocol/:report` | Download health protocol PDF |
-| GET | `/reports/:jobId/index.html` | Interactive web report |
-
-## Tech Stack
-
-- **Runtime:** Node.js 22 + Express 4.21
-- **Database:** SQLite3 (better-sqlite3) — unified DB with ClinVar, CPIC, PharmGKB, PGS metadata
-- **PDF generation:** PDFKit
-- **AI:** Anthropic Claude SDK
-- **Imputation:** Beagle 5.5 (Java)
-- **PRS reference:** 1000 Genomes Phase 3 (2,504 samples, 6 ancestry groups)
-- **PGx reference:** CPIC (Clinical Pharmacogenetics Implementation Consortium)
-- **Frontend:** Vanilla HTML/CSS/JS
-- **ML correction:** Ancestry-aware Ridge regression (44 PGS models, 8-feature, trained on 2504 1000G samples)
-
-## Data Architecture
-
-```
-data/
-  helix-unified.db              # SQLite — ClinVar, SNPedia, CPIC tables, PGS metadata (~1.2GB)
-  pgs-compact/                  # PGS scoring files: rsid\tea\toa\tweight (~450MB, 1200+ models)
-  pgs-coverage-dual.json        # Chip + imputed coverage per PGS model
-  pgs-chip-coverage.json        # Chip-only coverage reference
-  correction-models.json        # Ancestry-aware Ridge regression coefficients (44 PGS × 8 features)
-  prs-eur-freqs-1kg.json.gz     # EUR allele frequencies from 1000G (~27MB, 3.5M variants)
-  prs-afr-freqs-1kg.json.gz     # AFR allele frequencies from 1000G (~27MB)
-  prs-eas-freqs-1kg.json.gz     # EAS allele frequencies from 1000G (~26MB)
-  prs-sas-freqs-1kg.json.gz     # SAS allele frequencies from 1000G (~27MB)
-  prs-amr-freqs-1kg.json.gz     # AMR allele frequencies from 1000G (~26MB)
-  prs-all-freqs-1kg.json.gz     # All-population allele frequencies (~29MB)
-
-prs-distributions-v5.json.gz    # Population score distributions (2504 samples, 5 pops + ALL, 1202 PGS) (~39MB)
-
-1000g/                          # 1000 Genomes Phase 3 VCFs (chr1-22) + panel.txt (~14GB)
-pgs-harmonized/                 # Harmonized PGS files with chromosome positions (~927MB)
-```
-
-### SQLite Tables (helix-unified.db)
-
-| Table | Rows | Description |
-|-------|------|-------------|
-| clinvar | 400K+ | ClinVar pathogenic/VUS variants |
-| snpedia | 16K+ | SNPedia annotations |
-| cpic_recommendations | 2,159 | CPIC dosing recommendations |
-| cpic_pairs | 634 | Gene-drug interaction pairs |
-| cpic_diplotypes | 110,346 | Diplotype-to-phenotype mappings |
-| cpic_allele_definitions | 1,324 | Star allele definitions |
-| cpic_sequence_locations | 1,184 | Allele-defining variant positions |
-| cpic_allele_location_values | 3,091 | Variant alleles per allele definition |
-| pharmgkb_annotations | 3,804 | PharmGKB variant-drug annotations |
-| pgs_metadata | 1,200+ | PGS trait names and categories |
-
-
-## Engineering Journal
-
-Transparent documentation of our R&D process — what we tried, what worked, what didn't, and what it cost.
+Transparent, honest documentation of our R&D process. Not polished marketing — real engineering post-mortems with actual numbers, actual costs, and actual failures.
 
 | Entry | Date | Topic |
 |-------|------|-------|
-| [Entry 1: Building Accurate PRS from Consumer DNA Data](journal/2026-03-prs-scoring-journey.md) | March 2026 | PRS scoring pipeline evolution, validation challenges, the correction model trap, and why extreme scores aren't bugs |
+| [Building Accurate PRS from Consumer DNA Data](journal/2026-03-prs-scoring-journey.md) | March 2026 | Five phases of PRS pipeline development. Validation results (r=0.107 for height). The PRS-CSx experiment that didn't improve accuracy. A 95% PGP imputation failure rate. Why correction models pulled everything to the mean. Lessons learned and roadmap. |
 
----
+### Research Tools
+
+Standalone Python scripts for PRS research, all working with publicly available data. [Full tool documentation](tools/README.md).
+
+**Data collection** — Scrape PGP phenotypes, bulk download PGS Catalog models, fetch ancestry metadata
+
+**Scoring** — GPU-accelerated PRS scoring via PyTorch sparse matrix multiplication, 1000 Genomes population distribution building, full batch pipelines for Vast.ai
+
+**Validation** — Validate PRS against OpenSNP phenotypes (4,257 samples) and PGP medical records (943 profiles), select best model per trait per ancestry
+
+**QC** — Allele alignment checking, clinical text-to-trait mapping with 170+ condition patterns
+
+## About Helix Sequencing
+
+Privacy-first DNA analysis. Upload a consumer genotype file (23andMe, AncestryDNA, MyHeritage, or VCF), receive a comprehensive genetic health report. Zero data retention — all user data is automatically deleted after analysis, with a cryptographic deletion certificate.
+
+| What We Score | Scale |
+|---------------|-------|
+| Polygenic risk scores | 3,550+ models across cancer, cardiovascular, metabolic, neurological, autoimmune, and more |
+| Pathogenic variants | 400,000+ ClinVar entries scanned |
+| Pharmacogenomics | 34 CPIC genes, 110K+ diplotype-to-phenotype mappings |
+| Variant annotations | 16,000+ SNPedia entries |
+| Imputed variants | ~28M via Beagle 5.5 |
+| AI health protocols | 6 parallel domain-specialized agents |
+
+## Get Involved
+
+If you're working on PRS accuracy, ancestry-aware scoring, consumer genomics, or longevity science — we'd love to hear from you. Open an issue, submit a PR, or just use the tools and let us know what you find.
+
+The more people working on this openly, the better the science gets for everyone.
 
 ## License
 
-Proprietary. All rights reserved.
+Journal content and documentation: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — share and adapt freely with attribution.
 
+Research tools: MIT — use freely for any purpose.
