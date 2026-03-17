@@ -106,7 +106,6 @@ The most expensive thing wasn't compute — it was three weeks of engineering ti
 </td><td>
 
 **Still working on**
-- NHANES validation (5K+ clinical outcomes)
 - Non-EUR ancestry accuracy
 - Trio analysis for rare disease families
 - Drug interaction deep-dives
