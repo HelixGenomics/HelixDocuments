@@ -407,50 +407,6 @@ pgs-harmonized/                 # Harmonized PGS files with chromosome positions
 | pharmgkb_annotations | 3,804 | PharmGKB variant-drug annotations |
 | pgs_metadata | 1,200+ | PGS trait names and categories |
 
-## Project Structure
-
-```
-server.js              # Express server & full analysis pipeline (~4500 lines)
-package.json
-
-public/                # Frontend (HTML, CSS, assets)
-scripts/               # Runtime analysis & calibration scripts
-tools/                 # Offline DB build, data processing, patching
-infra/                 # Deployment (setup.sh) and backup (backup.sh)
-docs/                  # VERSION.md, changelogs
-
-# Gitignored (large data, not tracked):
-data/                  # Reference databases (~37GB)
-1000g/                 # 1000 Genomes Phase 3 reference panel (~14GB)
-uploads/               # Temporary user DNA files
-reports/               # Generated reports (auto-cleaned)
-pgs-harmonized/        # Harmonized PGS scoring files
-node_modules/
-venv/
-```
-
-## Setup
-
-```bash
-# Clone and install
-git clone <repo-url> /opt/helix-new
-cd /opt/helix-new
-npm install
-
-# Configure
-cp .env.example .env
-# Edit .env with your ANTHROPIC_API_KEY
-
-# Reference data (not in git — obtain separately)
-# Place helix-unified.db and PGS files in data/
-# Place 1000 Genomes reference in 1000g/ (for imputation)
-
-# Run
-node --max-old-space-size=16384 server.js
-
-# Or via systemd
-sudo systemctl start helix
-```
 
 ## License
 
