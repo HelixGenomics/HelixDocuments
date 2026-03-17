@@ -1,66 +1,115 @@
-# Helix Open Research
+<p align="center">
+  <img src="https://img.shields.io/badge/PGS_Models-3%2C550+-8b5cf6?style=for-the-badge" alt="PGS Models">
+  <img src="https://img.shields.io/badge/ClinVar-400K+-06b6d4?style=for-the-badge" alt="ClinVar">
+  <img src="https://img.shields.io/badge/Pharmacogenes-34_CPIC-10b981?style=for-the-badge" alt="CPIC">
+  <img src="https://img.shields.io/badge/License-MIT_/_CC_BY_4.0-f59e0b?style=for-the-badge" alt="License">
+</p>
 
-**Open research, open tools, open journey.**
+<h1 align="center">🧬 Helix Open Research</h1>
 
-This repository exists because genomics is too important to build behind closed doors.
+<p align="center">
+  <strong>Open research, open tools, open journey.</strong><br>
+  <em>Genomics is too important to build behind closed doors.</em>
+</p>
 
-We're building [Helix Sequencing](https://helixsequencing.com) — a privacy-first DNA analysis platform that turns consumer genotype files into actionable health insights using 3,550+ polygenic risk scores, pharmacogenomics, pathogenic variant scanning, and AI-powered longevity protocols.
+<p align="center">
+  <a href="https://helixsequencing.com">Platform</a> ·
+  <a href="journal/2026-03-prs-scoring-journey.md">Engineering Journal</a> ·
+  <a href="tools/README.md">Research Tools</a> ·
+  <a href="#get-involved">Collaborate</a>
+</p>
 
-Along the way, we've learned hard lessons about PRS accuracy, spent money on experiments that didn't work, hit walls that nobody warned us about, and figured things out that we think other people should know. So we're sharing all of it — the wins, the failures, the code, and the data.
+---
 
-## Why Open?
+## The Mission
 
-Polygenic risk scoring sits at the intersection of genomics and longevity science. The potential is enormous: identify your genetic predispositions before they manifest, intervene early, live longer and healthier. But the field is fragmented. Academic papers describe methods in theory. Commercial platforms keep their implementations proprietary. Nobody publishes the engineering reality — what actually works when you try to score 3,550 models against real consumer DNA data, what breaks, and what it costs.
+We're building [Helix Sequencing](https://helixsequencing.com) — a privacy-first DNA analysis platform that turns a $99 consumer genotype file into 2,800+ polygenic risk scores, pharmacogenomics, pathogenic variant scanning, and AI-powered health protocols. Zero data retention.
 
-We believe this needs to change.
+Along the way, we've learned hard lessons. Spent money on experiments that didn't work. Hit walls nobody warned us about. **So we're sharing all of it** — the wins, the failures, the code, and the data.
 
-The promise of genomics-informed longevity won't be realized by any single team working in isolation. It requires collective effort — researchers, engineers, clinicians, and individuals all contributing to a shared understanding of what genetic risk scores can and cannot tell us. The faster we share what we learn, the faster everyone benefits.
+> **Why?** Academic papers describe PRS methods in theory. Commercial platforms keep implementations proprietary. Nobody publishes the engineering reality — what actually works when you score 3,550 models against real consumer DNA data, what breaks, and what it costs. We believe this needs to change.
 
-This repository is our contribution to that effort. Everything here is published with the hope that it saves someone else time, money, or frustration — and that it moves the entire field forward, even if only by a small step.
+---
 
-## What's Here
+## 📖 Engineering Journal
 
-### Engineering Journal
+Honest post-mortems with real numbers, real costs, and real failures. Not polished marketing.
 
-Transparent, honest documentation of our R&D process. Not polished marketing — real engineering post-mortems with actual numbers, actual costs, and actual failures.
+<table>
+<tr>
+<td width="100"><strong>Entry 1</strong><br><sub>Mar 2026</sub></td>
+<td>
+  <strong><a href="journal/2026-03-prs-scoring-journey.md">How We Built Accurate PRS from a $99 DNA Kit</a></strong><br>
+  <sub>Scored 2,800+ disease risk models. Naive version was wildly wrong. Three weeks of "improvements" made it worse. Going back to basics produced the best results.</sub><br><br>
+  <img src="https://img.shields.io/badge/Validation-4%2C257_samples-06b6d4?style=flat-square" alt="">
+  <img src="https://img.shields.io/badge/Height_r-0.107_(p%3D0.044)-8b5cf6?style=flat-square" alt="">
+  <img src="https://img.shields.io/badge/Build_Cost-%24400--800-10b981?style=flat-square" alt="">
+</td>
+</tr>
+</table>
 
-| Entry | Date | Topic |
-|-------|------|-------|
-| [Building Accurate PRS from Consumer DNA Data](journal/2026-03-prs-scoring-journey.md) | March 2026 | Five phases of PRS pipeline development. Validation results (r=0.107 for height). The PRS-CSx experiment that didn't improve accuracy. A 95% PGP imputation failure rate. Why correction models pulled everything to the mean. Lessons learned and roadmap. |
+---
 
-### Research Tools
+## 🛠️ Research Tools
 
-Standalone Python scripts for PRS research, all working with publicly available data. [Full tool documentation](tools/README.md).
+Standalone Python scripts for PRS research. All work with publicly available data. **[Full documentation →](tools/README.md)**
 
-**Data collection** — Scrape PGP phenotypes, bulk download PGS Catalog models, fetch ancestry metadata
+| Category | Tools | What They Do |
+|:---------|:------|:-------------|
+| **Data Collection** | `scrape-pgp.py` `download-pgs.py` `fetch-ancestry.py` | Scrape PGP phenotypes, bulk download PGS Catalog models, fetch ancestry metadata |
+| **Scoring** | `gpu-scorer.py` `build-distributions.py` | GPU-accelerated PRS via PyTorch sparse matrix multiplication, 1000 Genomes population distributions |
+| **Validation** | `validate-opensnp.py` `validate-pgp.py` | Test against 4,257 OpenSNP samples and 943 PGP genomes with medical records |
+| **QC** | `allele-alignment.py` `condition-mapper.py` | Strand-ambiguous SNP handling, clinical text-to-trait mapping (170+ patterns) |
 
-**Scoring** — GPU-accelerated PRS scoring via PyTorch sparse matrix multiplication, 1000 Genomes population distribution building, full batch pipelines for Vast.ai
+---
 
-**Validation** — Validate PRS against OpenSNP phenotypes (4,257 samples) and PGP medical records (943 profiles), select best model per trait per ancestry
+## 📊 Platform at a Glance
 
-**QC** — Allele alignment checking, clinical text-to-trait mapping with 170+ condition patterns
+<table>
+<tr>
+<td align="center" width="16%"><strong>3,550+</strong><br><sub>PGS Models</sub></td>
+<td align="center" width="16%"><strong>400K+</strong><br><sub>ClinVar Variants</sub></td>
+<td align="center" width="16%"><strong>34</strong><br><sub>CPIC Genes</sub></td>
+<td align="center" width="16%"><strong>28M</strong><br><sub>Imputed Variants</sub></td>
+<td align="center" width="16%"><strong>16K+</strong><br><sub>SNPedia Entries</sub></td>
+<td align="center" width="16%"><strong>6</strong><br><sub>AI Agents</sub></td>
+</tr>
+</table>
 
-## About Helix Sequencing
+**16 integrated databases** — PGS Catalog, ClinVar, MyVariant.info (CADD + gnomAD), MyDisease.info, MyChem.info, CPIC, DisGeNET, GWAS Catalog, Orphanet, PharmGKB, AlphaMissense, ClinGen, SNPedia, 1000 Genomes — unified in a 2GB SQLite database indexed by rsID.
 
-Privacy-first DNA analysis. Upload a consumer genotype file (23andMe, AncestryDNA, MyHeritage, or VCF), receive a comprehensive genetic health report. Zero data retention — all user data is automatically deleted after analysis, with a cryptographic deletion certificate.
+**Full database documentation →** [HelixDocuments](https://github.com/HelixGenomics/HelixDocuments)
 
-| What We Score | Scale |
-|---------------|-------|
-| Polygenic risk scores | 3,550+ models across cancer, cardiovascular, metabolic, neurological, autoimmune, and more |
-| Pathogenic variants | 400,000+ ClinVar entries scanned |
-| Pharmacogenomics | 34 CPIC genes, 110K+ diplotype-to-phenotype mappings |
-| Variant annotations | 16,000+ SNPedia entries |
-| Imputed variants | ~28M via Beagle 5.5 |
-| AI health protocols | 6 parallel domain-specialized agents |
+---
 
-## Get Involved
+## 🤝 Get Involved
 
-If you're working on PRS accuracy, ancestry-aware scoring, consumer genomics, or longevity science — we'd love to hear from you. Open an issue, submit a PR, or just use the tools and let us know what you find.
+We're actively looking for collaborators:
 
-The more people working on this openly, the better the science gets for everyone.
+| Area | What We Need |
+|:-----|:-------------|
+| **PRS Validation** | NHANES dataset integration, clinical outcome ground truth |
+| **Ancestry Accuracy** | Non-EUR PRS calibration, cross-ancestry portability research |
+| **Rare Variants** | Combined rare + common variant scoring (RICE integration) |
+| **Family Studies** | Trio analysis for rare disease — directly relevant to our Trisomy 9 research |
+| **Pharmacogenomics** | Star allele calling improvements, CYP variant edge cases |
 
-## License
+**Open an issue.** Submit a PR. Fork the tools and run your own validation. Or just use what's here and let us know what you find.
 
-Journal content and documentation: [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — share and adapt freely with attribution.
+> *The more people working on this openly, the better the science gets for everyone.*
 
-Research tools: MIT — use freely for any purpose.
+---
+
+## 📄 License
+
+| Content | License |
+|:--------|:--------|
+| Journal & documentation | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — share and adapt with attribution |
+| Research tools | [MIT](https://opensource.org/licenses/MIT) — use freely for any purpose |
+
+---
+
+<p align="center">
+  <a href="https://helixsequencing.com"><strong>helixsequencing.com</strong></a><br>
+  <sub>Privacy-first DNA analysis · Zero data retention · Cryptographic deletion certificates</sub>
+</p>
