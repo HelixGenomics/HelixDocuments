@@ -88,7 +88,7 @@ We're actively looking for collaborators:
 
 | Area | What We Need |
 |:-----|:-------------|
-| **PRS Validation** | NHANES dataset integration, clinical outcome ground truth |
+| **PRS Validation** | Large-scale clinical dataset validation, real diagnosis ground truth |
 | **Ancestry Accuracy** | Non-EUR PRS calibration, cross-ancestry portability research |
 | **Rare Variants** | Combined rare + common variant scoring (RICE integration) |
 | **Family Studies** | Trio analysis for rare disease — directly relevant to our Trisomy 9 research |
