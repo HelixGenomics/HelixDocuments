@@ -408,6 +408,16 @@ pgs-harmonized/                 # Harmonized PGS files with chromosome positions
 | pgs_metadata | 1,200+ | PGS trait names and categories |
 
 
+## Engineering Journal
+
+Transparent documentation of our R&D process — what we tried, what worked, what didn't, and what it cost.
+
+| Entry | Date | Topic |
+|-------|------|-------|
+| [Entry 1: Building Accurate PRS from Consumer DNA Data](journal/2026-03-prs-scoring-journey.md) | March 2026 | PRS scoring pipeline evolution, validation challenges, the correction model trap, and why extreme scores aren't bugs |
+
+---
+
 ## License
 
 Proprietary. All rights reserved.
