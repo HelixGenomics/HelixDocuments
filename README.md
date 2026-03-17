@@ -1,21 +1,49 @@
 # Helix Sequencing
 
-Privacy-first DNA analysis platform. Upload a consumer genetic data file, get 960+ polygenic risk scores, pathogenic variant scanning, pharmacogenomics with star allele calling, and AI-powered longevity protocols — with zero data retention.
+Privacy-first DNA analysis platform. Upload a consumer genetic data file, get 2,800+ polygenic risk scores with ancestry-optimized model selection, pathogenic variant scanning, pharmacogenomics with star allele calling, and AI-powered longevity protocols — with zero data retention.
 
 ## Key Numbers
 
 | Metric | Value |
 |--------|-------|
-| Polygenic Risk Scores | 3,500+ (PGS Catalog) |
-| Curated PRS Traits | 44 (coverage-optimized, ML-corrected) |
+| Polygenic Risk Scores | 3,550+ models (PGS Catalog — full ancestry coverage) |
+| Scored PRS Traits | 2,800+ (with population distributions) |
+| Curated PRS Traits | 57 (coverage-optimized, ML-corrected) |
 | Ancestry Populations | 5 (EUR, AFR, EAS, SAS, AMR) + blended |
 | ClinVar variants scanned | 400,000+ |
 | SNPedia annotations | 16,000+ |
 | Pharmacogenes (CPIC) | 34 genes, 110K+ diplotypes |
 | Imputed variants | ~28M (Beagle 5.5) |
 | Reference allele freqs | 3.5M variants × 6 populations |
-| Analysis time | <2 min standard, 15-30 min imputed |
+| AI agents per report | 6 parallel (domain-specialized, sex-aware) |
+| Analysis time | <2 min standard, ~3-5 min imputed |
 | Data retention | Zero |
+| Pricing | $50 one-time or $10 + $5/mo subscription |
+
+---
+
+## Data Sources
+
+All integrated into a unified 2GB SQLite database (`helix-unified.db`), indexed by rsID for instant lookup during analysis.
+
+| Source | Table | Records | Used For |
+|--------|-------|---------|----------|
+| [PGS Catalog](https://www.pgscatalog.org/) | Score files | 3,550+ models, 2.37B weights | Polygenic risk scoring |
+| [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/) | `clinvar` | 400,000+ | Pathogenic variant identification |
+| [SNPedia](https://www.snpedia.com/) | `snpedia` | 16,000+ | Variant annotations and phenotype associations |
+| [MyVariant.info](https://myvariant.info/) | `myvariant_cadd` | 2,699,063 | CADD deleteriousness scores |
+| [MyVariant.info](https://myvariant.info/) | `myvariant_gnomad` | 2,571,921 | gnomAD population allele frequencies |
+| [MyVariant.info](https://myvariant.info/) | `myvariant_clinvar_enriched` | — | ClinVar star ratings and review status |
+| [MyDisease.info](https://mydisease.info/) | `mydisease_genes` | — | Gene-disease associations |
+| [MyChem.info](https://mychem.info/) | `mychem_drugs` | — | Drug compound data for PGx |
+| [CPIC](https://cpicpgx.org/) | `cpic_*` (6 tables) | 34 genes, 110K+ diplotypes | Star allele calling, drug recommendations |
+| [DisGeNET](https://www.disgenet.org/) | `disgenet` | — | Gene-disease network associations |
+| [GWAS Catalog](https://www.ebi.ac.uk/gwas/) | `gwas` | — | Genome-wide association study results |
+| [Orphanet](https://www.orpha.net/) | `orphanet` | — | Rare disease classifications |
+| [PharmGKB](https://www.pharmgkb.org/) | `pharmgkb_annotations` | — | Pharmacogenomic drug-gene annotations |
+| [AlphaMissense](https://alphamissense.hegelab.org/) | `alphamissense` | — | AI protein pathogenicity predictions |
+| [ClinGen](https://clinicalgenome.org/) | `clingen_validity`, `clingen_dosage` | — | Gene-disease clinical validity and dosage sensitivity |
+| [1000 Genomes](https://www.internationalgenome.org/) | Allele freq files | 3.5M variants × 6 populations | Population reference frequencies, imputation panel |
 
 ---
 
