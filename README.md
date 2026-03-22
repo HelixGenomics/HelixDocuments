@@ -68,6 +68,23 @@ Each batch cycle has improved concordance between predicted risk and actual diag
 - **Planned:** Per-model discrimination metrics (AUROC against our own validated cohort) once sample sizes reach statistical significance (~200+ per trait)
 - **Planned:** Ancestry-specific calibration — current validation is predominantly EUR; expanding to multi-ancestry cohorts
 
+### Training Data Capture & Domain-Specific Model Development
+
+Every genome we process through the platform generates a complete, structured training record:
+
+- **Scored inputs** — PRS results, pathogenic variants, pharmacogenomic phenotypes, GWAS associations, pre-digested and structured
+- **Reasoning traces** — full chain-of-thought from each specialist AI agent as it interprets the genetic data, weighs evidence, and forms clinical conclusions
+- **Structured outputs** — domain-specific JSON reports (cardiovascular, oncology, metabolic, neurological, pharmacogenomics, health index)
+- **Final narrative** — the rendered patient-facing report with risk stratification, screening recommendations, and protocols
+
+This corpus is growing with every batch we process. As of March 2026, we have **127 complete training records**, each containing multiple specialist agent traces across distinct clinical domains — yielding **~890 domain-specific reasoning examples** and growing.
+
+**The goal:** train a purpose-built, lightweight model specifically for genomic health interpretation that outperforms general-purpose foundation models on this task. Not a general chatbot — a specialist that reasons through genetic evidence the way a clinical geneticist would, but runs on modest infrastructure without per-report API costs.
+
+A domain-specific model trained on thousands of validated, high-quality interpretation examples — where each training sample has been checked against real phenotype data — has a realistic path to exceeding the accuracy of models that were trained on the entire internet but have no particular depth in clinical genomics.
+
+We will open-source the model and publish the training methodology when it is ready.
+
 ### Validation Metrics
 
 | Metric | Current (n=64) | Target (n=500+) |
