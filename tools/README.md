@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Tools-11_Scripts-8b5cf6?style=for-the-badge" alt="Tools">
-  <img src="https://img.shields.io/badge/PGS_Models-2%2C826-06b6d4?style=for-the-badge" alt="PGS Models">
+  <img src="https://img.shields.io/badge/PGS_Models-3%2C550+--06b6d4?style=for-the-badge" alt="PGS Models">
   <img src="https://img.shields.io/badge/Validated-PGP_%2B_OpenSNP-10b981?style=for-the-badge" alt="Validated">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" alt="License">
 </p>
