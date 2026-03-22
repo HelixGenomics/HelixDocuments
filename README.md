@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/License-MIT_/_CC_BY_4.0-f59e0b?style=for-the-badge" alt="License">
 </p>
 
-<h1 align="center">🧬 Helix Open Research</h1>
+<h1 align="center">Helix Open Research</h1>
 
 <p align="center">
   <strong>Open research, open tools, open journey.</strong><br>
@@ -31,7 +31,55 @@ Along the way, we've learned hard lessons. Spent money on experiments that didn'
 
 ---
 
-## 📖 Engineering Journal
+## Current Work: Iterative PRS Calibration (March 2026)
+
+We are systematically processing **1,000+ genomes** from the [Personal Genome Project](https://www.personalgenomes.org/) to validate and improve polygenic risk score accuracy. PGP participants have consented to public sharing of both genetic data and medical records, making it the ideal ground-truth dataset.
+
+### Methodology
+
+Rather than scoring everything at once and hoping for the best, we're running an **iterative batch validation protocol**:
+
+1. **Score** a batch of ~50 PGP participants through the full analysis pipeline
+2. **Validate** PRS predictions against participants' documented medical diagnoses
+3. **Identify** discordant cases — high-risk scores with no diagnosis, low-risk scores in diagnosed individuals
+4. **Trace** discordances to specific PGS models and root-cause the failure mode
+5. **Recalibrate** — remove underperforming models, verify ensemble composition
+6. **Repeat** with the next batch, carrying forward all improvements
+
+This prioritises stability over speed. Each batch builds on validated improvements from the previous cycle.
+
+### What We've Found So Far
+
+Validation against 64 PGP participants with medical records has identified several categories of problematic PGS models:
+
+| Failure Mode | Example | Impact |
+|:-------------|:--------|:-------|
+| **Distribution bias** | Childhood-onset asthma model with population mean at 68th percentile instead of ~50th | Systematic false positives — nearly everyone scores elevated |
+| **Wrong phenotype target** | Rheumatoid *factor* model scored as rheumatoid *arthritis* | Introduces noise from a related but distinct biomarker |
+| **Duplicate models** | Two models from the same 2009 study, both included in ensemble | Overweights a single data source, reduces diversity |
+| **Below polygenic threshold** | Models with <20 variants passing through individual scoring | Not truly polygenic — single-gene effects masquerading as risk scores |
+
+Each batch cycle has improved concordance between predicted risk and actual diagnoses. The blocklist has grown from 0 to 54 models across multiple validation rounds.
+
+### Roadmap
+
+- **Ongoing:** Continue processing PGP batches (~900 remaining), validate after each cycle
+- **Planned:** Add optional self-reported diagnosis collection to the platform, enabling continuous validation from every user who opts in
+- **Planned:** Per-model discrimination metrics (AUROC against our own validated cohort) once sample sizes reach statistical significance (~200+ per trait)
+- **Planned:** Ancestry-specific calibration — current validation is predominantly EUR; expanding to multi-ancestry cohorts
+
+### Validation Metrics
+
+| Metric | Current (n=64) | Target (n=500+) |
+|:-------|:---------------|:-----------------|
+| PRS-phenotype concordance | 51.4% | >70% |
+| Blocklisted PGS models | 54 | Converging |
+| Active ensemble traits | 479 | Stable |
+| PGP genomes processed | 127 | 1,000+ |
+
+---
+
+## Engineering Journal
 
 Honest post-mortems with real numbers, real costs, and real failures. Not polished marketing.
 
@@ -50,7 +98,7 @@ Honest post-mortems with real numbers, real costs, and real failures. Not polish
 
 ---
 
-## 🛠️ Research Tools
+## Research Tools
 
 Standalone Python scripts for PRS research. All work with publicly available data. **[Full documentation →](tools/README.md)**
 
@@ -63,7 +111,7 @@ Standalone Python scripts for PRS research. All work with publicly available dat
 
 ---
 
-## 📊 Platform at a Glance
+## Platform at a Glance
 
 <table>
 <tr>
@@ -72,7 +120,7 @@ Standalone Python scripts for PRS research. All work with publicly available dat
 <td align="center" width="16%"><strong>34</strong><br><sub>CPIC Genes</sub></td>
 <td align="center" width="16%"><strong>28M</strong><br><sub>Imputed Variants</sub></td>
 <td align="center" width="16%"><strong>16K+</strong><br><sub>SNPedia Entries</sub></td>
-<td align="center" width="16%"><strong>6</strong><br><sub>AI Agents</sub></td>
+<td align="center" width="16%"><strong>7</strong><br><sub>AI Agents</sub></td>
 </tr>
 </table>
 
@@ -82,7 +130,7 @@ Standalone Python scripts for PRS research. All work with publicly available dat
 
 ---
 
-## 🤝 Get Involved
+## Get Involved
 
 We're actively looking for collaborators:
 
@@ -100,7 +148,7 @@ We're actively looking for collaborators:
 
 ---
 
-## 📄 License
+## License
 
 | Content | License |
 |:--------|:--------|

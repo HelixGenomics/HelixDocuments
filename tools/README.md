@@ -28,11 +28,12 @@
 <td>
 PRS scorer with <strong>equal-weight trimmed mean</strong> ensemble averaging.<br><br>
 <ul>
-<li>Scores 2,826 PGS Catalog models against imputed genotypes</li>
+<li>Scores 2,826+ PGS Catalog models against imputed genotypes</li>
 <li>EUR frequency-based ambiguous SNP resolution (A/T, C/G strand disambiguation)</li>
 <li>Groups models by EFO trait, removes outliers (>1.0 from median z), simple average</li>
 <li>Skips genome-wide models (>100K variants) — imputation bias inflates scores at scale</li>
 <li>Skips <20 variant models (not true polygenic scores)</li>
+<li>54 models blocklisted for non-discrimination, distribution bias, or phenotype mismatch</li>
 <li>Frequency-based calibration with correction models</li>
 </ul>
 </td>
