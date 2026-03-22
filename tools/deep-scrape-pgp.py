@@ -12,7 +12,8 @@ from urllib.request import urlopen, Request
 from urllib.error import HTTPError
 from datetime import datetime
 
-OUTPUT_DIR = '/workspace/pgp-pipeline'
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+OUTPUT_DIR = DATA_DIR
 PHENOTYPES_FILE = f'{OUTPUT_DIR}/pgp-phenotypes.json'
 OUTPUT = f'{OUTPUT_DIR}/pgp-deep-phenotypes.json'
 

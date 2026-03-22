@@ -15,13 +15,14 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 import sqlite3
 import multiprocessing
 
-SCORE_DIR = "/opt/helix/data/pgs-score-files"
-TRAIT_FILE = "/opt/helix/data/plink2-trait-info.json"
-DIST_FILE = "/opt/helix/data/prs-distributions-matched.json.gz"
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+SCORE_DIR = os.path.join(DATA_DIR, "pgs-score-files")
+TRAIT_FILE = os.path.join(DATA_DIR, "plink2-trait-info.json")
+DIST_FILE = os.path.join(DATA_DIR, "prs-distributions-matched.json.gz")
 BATCH_SIZE = 400
-METADATA_CSV = "/opt/helix/data/pgs_all_metadata_scores.csv"
-FREQ_STATS_CACHE = "/opt/helix/data/pgs-freq-stats-cache.json"
-EUR_FREQ_FILE = "/opt/helix/data/prs-eur-freqs-1kg.json.gz"
+METADATA_CSV = os.path.join(DATA_DIR, "pgs_all_metadata_scores.csv")
+FREQ_STATS_CACHE = os.path.join(DATA_DIR, "pgs-freq-stats-cache.json")
+EUR_FREQ_FILE = os.path.join(DATA_DIR, "prs-eur-freqs-1kg.json.gz")
 
 BASE_ENCODE = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
 COMP_TABLE = np.array([3, 2, 1, 0, 255], dtype=np.uint8)
@@ -530,7 +531,7 @@ def main():
         with open(TRAIT_FILE) as f:
             trait_info = json.load(f)
     pgs_meta = {}
-    meta_path = "/opt/helix/data/pgs-metadata-lookup.json"
+    meta_path = os.path.join(DATA_DIR, "pgs-metadata-lookup.json")
     if os.path.exists(meta_path):
         with open(meta_path) as f:
             pgs_meta = json.load(f)

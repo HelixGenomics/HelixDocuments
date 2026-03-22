@@ -3,7 +3,8 @@
 import sqlite3, time
 
 t0 = time.time()
-BASE = "/workspace/pgp-pipeline"
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+BASE = DATA_DIR
 MEGA_DB = f"{BASE}/pgs-mega.db"
 BIM = f"{BASE}/opensnp-frei2024/imputed/opensnp_hm3.bim"
 

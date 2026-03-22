@@ -6,8 +6,9 @@ Batches ~85 traits per call, saves results to pgs-trait-descriptions.json.
 import json, subprocess, sys, os, time, re
 
 BATCH_SIZE = 40
-OUTPUT_FILE = "/opt/helix/data/pgs-trait-descriptions.json"
-TRAITS_FILE = "/tmp/unique-pgs-traits.json"
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+OUTPUT_FILE = os.path.join(DATA_DIR, "pgs-trait-descriptions.json")
+TRAITS_FILE = os.path.join(DATA_DIR, "unique-pgs-traits.json")
 
 with open(TRAITS_FILE) as f:
     all_traits = json.load(f)

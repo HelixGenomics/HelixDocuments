@@ -8,8 +8,9 @@ from urllib.error import HTTPError
 from datetime import datetime
 from io import BytesIO, TextIOWrapper
 
-DOWNLOAD_LIST = '/workspace/1000g-scoring/ancestry-download-list.json'
-COMPACT_DIR = '/workspace/pgp-pipeline/pgs-compact'
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+DOWNLOAD_LIST = os.path.join(DATA_DIR, 'ancestry-download-list.json')
+COMPACT_DIR = os.path.join(DATA_DIR, 'pgs-compact')
 
 def ts():
     return datetime.now().strftime('%H:%M:%S')

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Tools-15_Scripts-8b5cf6?style=for-the-badge" alt="Tools">
+  <img src="https://img.shields.io/badge/Tools-11_Scripts-8b5cf6?style=for-the-badge" alt="Tools">
   <img src="https://img.shields.io/badge/PGS_Models-2%2C826-06b6d4?style=for-the-badge" alt="PGS Models">
   <img src="https://img.shields.io/badge/Validated-PGP_%2B_OpenSNP-10b981?style=for-the-badge" alt="Validated">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=for-the-badge" alt="License">
@@ -42,10 +42,7 @@ PRS scorer with <strong>equal-weight trimmed mean</strong> ensemble averaging.<b
 <td><strong><code>score-1kg-mega.py</code></strong></td>
 <td>Scores 1000 Genomes Phase 3 samples against all PGS models to build reference population distributions.</td>
 </tr>
-<tr>
-<td><strong><code>select-best-models.py</code></strong></td>
-<td>Selects optimal PGS models per trait based on coverage, calibration, and validation performance.</td>
-</tr>
+
 <tr>
 <td><strong><code>check-allele-alignment.py</code></strong></td>
 <td>Checks allele alignment between scoring files and genotype data. Detects strand flips and ambiguous SNPs.</td>
@@ -73,10 +70,7 @@ Validates PGP genotype files for chipset completeness and phenotype richness.<br
 <td><strong><code>validate-pgp.py</code></strong></td>
 <td>Validates PRS predictions against actual PGP Harvard participant phenotypes. Compares genetic risk scores to self-reported diagnoses, lab values, and health outcomes.</td>
 </tr>
-<tr>
-<td><strong><code>validate-opensnp-gpu-v2.py</code></strong></td>
-<td>GPU-accelerated validation against OpenSNP phenotype data (~7,000 genomes).</td>
-</tr>
+
 </table>
 
 ---
@@ -119,10 +113,7 @@ Generates plain-English trait descriptions for PGS models using Claude.<br><br>
 <td width="240"><strong><code>smart-condition-mapper.py</code></strong></td>
 <td>Maps PGS trait names to clinical categories using NLP and keyword matching.</td>
 </tr>
-<tr>
-<td><strong><code>build-pipeline-gpu.py</code></strong></td>
-<td>GPU-accelerated PRS scoring pipeline for batch processing large cohorts.</td>
-</tr>
+
 <tr>
 <td><strong><code>find-missing-ancestry.py</code></strong></td>
 <td>Identifies PGS models missing ancestry-specific population distributions.</td>

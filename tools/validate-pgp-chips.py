@@ -4,8 +4,9 @@ Flags files with <500K SNPs as incomplete."""
 
 import os, json, subprocess, gzip, bz2
 
-GENO_DIR = "/opt/helix/data/pgp-top50/genotypes/"
-PHENO_FILE = "/opt/helix/data/pgp-top50/pgp_top50_phenotypes.json"
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+GENO_DIR = os.path.join(DATA_DIR, "pgp-top50/genotypes/")
+PHENO_FILE = os.path.join(DATA_DIR, "pgp-top50/pgp_top50_phenotypes.json")
 
 with open(PHENO_FILE) as f:
     pheno = json.load(f)
@@ -149,6 +150,6 @@ print(f"\nFull chipsets (>=500K SNPs): {full_count} / {len(results)}")
 print(f"Ready for pipeline: {sum(1 for r in results if r['is_full_chip'] and r['quality_score'] >= 50)}")
 
 # Save results
-with open("/opt/helix/data/pgp-top50/chip_validation.json", "w") as f:
+with open(os.path.join(DATA_DIR, "pgp-top50/chip_validation.json"), "w") as f:
     json.dump(results, f, indent=2)
-print("\nSaved to /opt/helix/data/pgp-top50/chip_validation.json")
+print(f"\nSaved to {os.path.join(DATA_DIR, pgp-top50/chip_validation.json)}")

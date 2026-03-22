@@ -17,7 +17,8 @@ import json, gzip, sqlite3, os, sys, time
 import numpy as np
 from collections import defaultdict
 
-BASE_DIR = '/workspace/pgp-pipeline'
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+BASE_DIR = DATA_DIR
 PIPELINE_DB = f'{BASE_DIR}/pgp-pipeline.db'
 MEGA_DB = f'{BASE_DIR}/pgs-mega.db'
 SCORES_FILE = f'{BASE_DIR}/pgp-prs-scores.json.gz'

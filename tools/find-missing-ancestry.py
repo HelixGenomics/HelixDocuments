@@ -7,9 +7,10 @@ from urllib.error import HTTPError
 from datetime import datetime
 from collections import defaultdict
 
-COMPACT_DIR = '/workspace/pgp-pipeline/pgs-compact'
-OUTPUT = '/workspace/1000g-scoring/missing-ancestry-models.json'
-DOWNLOAD_LIST = '/workspace/1000g-scoring/ancestry-download-list.json'
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+COMPACT_DIR = os.path.join(DATA_DIR, 'pgs-compact')
+OUTPUT = os.path.join(DATA_DIR, 'missing-ancestry-models.json')
+DOWNLOAD_LIST = os.path.join(DATA_DIR, 'ancestry-download-list.json')
 
 def ts():
     return datetime.now().strftime('%H:%M:%S')

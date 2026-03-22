@@ -26,12 +26,13 @@ from multiprocessing import Pool, Manager, cpu_count
 from concurrent.futures import ProcessPoolExecutor, as_completed
 import subprocess
 
-MEGA_DB = '/workspace/pgp-pipeline/pgs-mega.db'
-ANCESTRY_SEL = '/workspace/1000g-scoring/pgs-ancestry-selection.json'
-VCF_DIR = '/workspace/1000g-scoring/1000g'
-PANEL_FILE = '/workspace/1000g-scoring/1000g/panel.txt'
-OUTPUT = '/workspace/1000g-scoring/prs-distributions-mega.json.gz'
-DOSES_DIR = '/workspace/1000g-scoring/1kg-doses'
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+MEGA_DB = os.path.join(DATA_DIR, 'pgs-mega.db')
+ANCESTRY_SEL = os.path.join(DATA_DIR, 'pgs-ancestry-selection.json')
+VCF_DIR = os.path.join(DATA_DIR, '1000g')
+PANEL_FILE = os.path.join(DATA_DIR, '1000g/panel.txt')
+OUTPUT = os.path.join(DATA_DIR, 'prs-distributions-mega.json.gz')
+DOSES_DIR = os.path.join(DATA_DIR, '1kg-doses')
 POPS = ['EUR', 'AFR', 'EAS', 'SAS', 'AMR']
 COMPLEMENT = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
 

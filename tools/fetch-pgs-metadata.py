@@ -8,9 +8,10 @@ from urllib.error import HTTPError, URLError
 from datetime import datetime
 from collections import defaultdict
 
-COMPACT_DIR = '/workspace/pgp-pipeline/pgs-compact'
-OUTPUT_META = '/workspace/1000g-scoring/pgs-metadata.json'
-OUTPUT_SELECTION = '/workspace/1000g-scoring/pgs-ancestry-selection.json'
+DATA_DIR = os.environ.get("HELIX_DATA_DIR", "./data")
+COMPACT_DIR = os.path.join(DATA_DIR, 'pgs-compact')
+OUTPUT_META = os.path.join(DATA_DIR, 'pgs-metadata.json')
+OUTPUT_SELECTION = os.path.join(DATA_DIR, 'pgs-ancestry-selection.json')
 
 ANCESTRY_GROUPS = ['EUR', 'AFR', 'EAS', 'SAS', 'AMR']
 
