@@ -123,7 +123,7 @@ Standalone Python scripts for PRS research. All work with publicly available dat
 |:---------|:------|:-------------|
 | **Data Collection** | `scrape-pgp.py` `download-pgs.py` `fetch-ancestry.py` | Scrape PGP phenotypes, bulk download PGS Catalog models, fetch ancestry metadata |
 | **Scoring** | `gpu-scorer.py` `build-distributions.py` | GPU-accelerated PRS via PyTorch sparse matrix multiplication, 1000 Genomes population distributions |
-| **Validation** | `validate-opensnp.py` `validate-pgp.py` | Test against 943 PGP genomes with medical records |
+| **Validation** | `validate-opensnp.py` `validate-pgp.py` | Validated against 4,257 OpenSNP samples and 943 PGP genomes with medical records |
 | **QC** | `allele-alignment.py` `condition-mapper.py` | Strand-ambiguous SNP handling, clinical text-to-trait mapping (170+ patterns) |
 
 ---
