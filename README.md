@@ -103,7 +103,7 @@ Every genome processed generates a complete, structured training record:
 - **Structured outputs** — domain-specific JSON reports per agent
 - **Final narrative** — patient-facing report with risk stratification and protocols
 
-As of March 2026, we have **1,434 training pairs** across 42 unique participants and 8 agent types (263MB). Each pair contains the full prompt (35-45KB of structured genetic data) and the complete agent output with chain-of-thought reasoning.
+As of March 2026, we have **1,434+ training pairs** across 62 unique participants and 8 agent types (263MB), with 271 total genomes processed through the platform. Each pair contains the full prompt (35-45KB of structured genetic data) and the complete agent output with chain-of-thought reasoning.
 
 **The goal:** train a purpose-built model specifically for genomic health interpretation that outperforms general-purpose foundation models on this task, running on modest infrastructure without per-report API costs.
 
