@@ -7,13 +7,17 @@ Validates PRS scores against self-reported phenotype data from PGP participants.
 Compares PRS percentile distributions between participants WITH vs WITHOUT each condition.
 
 Data sources:
-  - Phenotypes: /opt/helix/data/pgp-{top50,batch3,batch4}/pgp_top50_phenotypes.json
-  - PRS scores: /opt/helix/reports/{jobId}/ensembled-prs.json
-  - Job mapping: /opt/helix/data/master-batch-v3.log (COMPLETE lines)
+  - Phenotypes: JSON files with PGP participant survey data (profile_data.traits, survey_traits)
+  - PRS scores: ensembled-prs.json or prs-results.json per report
+  - Job mapping: batch log with COMPLETE lines mapping hu_id -> job_id
 
 Output:
-  - /opt/helix/data/validation/prs-validation-results.csv
-  - /opt/helix/data/validation/prs-validation-summary.txt
+  - prs-validation-results.csv  (per-condition AUC, sensitivity, specificity)
+  - prs-validation-summary.txt  (human-readable summary)
+
+Usage:
+  Edit the configuration paths below to match your directory structure, then run:
+    python validate-prs-phenotype.py
 """
 
 import json
@@ -25,17 +29,18 @@ from collections import defaultdict
 from datetime import datetime
 
 # ── Configuration ──────────────────────────────────────────────────────────────
+# Update these paths to match your directory structure
 
 PHENOTYPE_FILES = [
-    "/opt/helix/data/pgp-top50/pgp_top50_phenotypes.json",
-    "/opt/helix/data/pgp-batch3/pgp_top50_phenotypes.json",
-    "/opt/helix/data/pgp-batch4/pgp_top50_phenotypes.json",
+    "data/pgp-top50/pgp_top50_phenotypes.json",
+    "data/pgp-batch3/pgp_top50_phenotypes.json",
+    "data/pgp-batch4/pgp_top50_phenotypes.json",
 ]
-REPORTS_DIR = "/opt/helix/reports"
+REPORTS_DIR = "reports"
 BATCH_LOGS = [
-    "/opt/helix/data/master-batch-v3.log",  # Only v3 — earlier batches had unfixed bugs
+    "data/master-batch.log",
 ]
-OUTPUT_DIR = "/opt/helix/data/validation"
+OUTPUT_DIR = "data/validation"
 MIN_GROUP_SIZE = 3  # Minimum participants per group for meaningful comparison
 
 # ── Condition → PRS trait mapping ──────────────────────────────────────────────

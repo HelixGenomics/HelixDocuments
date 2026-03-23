@@ -33,15 +33,16 @@ import sys
 from collections import defaultdict
 
 
-# Default weights — adjust these to calibrate
+# Example weights — adjust these to calibrate for your cohort
+# These are starting-point values, not production weights
 WEIGHTS = {
     "prs_high_risk_threshold": 75,      # Percentile above which PRS contributes penalty
     "prs_very_high_threshold": 90,      # Percentile for "very high risk"
-    "prs_penalty_per_high": 0.3,        # Penalty per high-risk trait
-    "prs_penalty_per_very_high": 0.8,   # Penalty per very-high-risk trait
-    "prs_max_penalty": 25,              # Cap on total PRS penalty
-    "variant_pathogenic_weight": 3.0,   # Per pathogenic variant
-    "variant_likely_path_weight": 1.5,  # Per likely pathogenic variant
+    "prs_penalty_per_high": 0.5,        # Penalty per high-risk trait (tune this)
+    "prs_penalty_per_very_high": 1.0,   # Penalty per very-high-risk trait (tune this)
+    "prs_max_penalty": 30,              # Cap on total PRS penalty
+    "variant_pathogenic_weight": 2.0,   # Per pathogenic variant
+    "variant_likely_path_weight": 1.0,  # Per likely pathogenic variant
     "variant_max_penalty": 20,          # Cap on variant penalty
     "carrier_weight": 0.5,             # Per carrier variant
     "carrier_max_penalty": 5,           # Cap on carrier penalty
