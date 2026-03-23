@@ -1,6 +1,7 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/PGS_Models-3%2C550+-8b5cf6?style=for-the-badge" alt="PGS Models">
+  <img src="https://img.shields.io/badge/PGS_Models-5%2C251-8b5cf6?style=for-the-badge" alt="PGS Models">
   <img src="https://img.shields.io/badge/ClinVar-400K+-06b6d4?style=for-the-badge" alt="ClinVar">
+  <img src="https://img.shields.io/badge/Evidence_DBs-26_tables-ef4444?style=for-the-badge" alt="Evidence DBs">
   <img src="https://img.shields.io/badge/Pharmacogenes-34_CPIC-10b981?style=for-the-badge" alt="CPIC">
   <img src="https://img.shields.io/badge/License-MIT_/_CC_BY_4.0-f59e0b?style=for-the-badge" alt="License">
 </p>
@@ -23,76 +24,98 @@
 
 ## The Mission
 
-We're building [Helix Sequencing](https://helixsequencing.com) — a privacy-first DNA analysis platform that turns a $99 consumer genotype file into 2,800+ polygenic risk scores, pharmacogenomics, pathogenic variant scanning, and AI-powered health protocols. Zero data retention.
+We're building [Helix Sequencing](https://helixsequencing.com) — a privacy-first DNA analysis platform that turns a $99 consumer genotype file into 5,251 polygenic risk scores, pharmacogenomics, pathogenic variant scanning, and AI-powered health protocols. Zero data retention.
 
 Along the way, we've learned hard lessons. Spent money on experiments that didn't work. Hit walls nobody warned us about. **So we're sharing all of it** — the wins, the failures, the code, and the data.
 
-> **Why?** Academic papers describe PRS methods in theory. Commercial platforms keep implementations proprietary. Nobody publishes the engineering reality — what actually works when you score 3,550 models against real consumer DNA data, what breaks, and what it costs. We believe this needs to change.
+> **Why?** Academic papers describe PRS methods in theory. Commercial platforms keep implementations proprietary. Nobody publishes the engineering reality — what actually works when you score 5,000+ models against real consumer DNA data, what breaks, and what it costs. We believe this needs to change.
 
 ---
 
-## Current Work: Iterative PRS Calibration (March 2026)
+## Current Work: Batch v3 Results & Bayesian Evidence Pipeline (March 2026)
 
 We are systematically processing **1,000+ genomes** from the [Personal Genome Project](https://www.personalgenomes.org/) to validate and improve polygenic risk score accuracy. PGP participants have consented to public sharing of both genetic data and medical records, making it the ideal ground-truth dataset.
 
-### Methodology
+### Batch v3 Results
 
-Rather than scoring everything at once and hoping for the best, we're running an **iterative batch validation protocol**:
+Batch v3 completed: **74 genomes scored**, bringing our total PGP cohort to 148 processed genomes. Phenotype validation against self-reported diagnoses (survey data with explicit Yes/No per condition) yielded:
 
-1. **Score** a batch of ~50 PGP participants through the full analysis pipeline
-2. **Validate** PRS predictions against participants' documented medical diagnoses
-3. **Identify** discordant cases — high-risk scores with no diagnosis, low-risk scores in diagnosed individuals
-4. **Trace** discordances to specific PGS models and root-cause the failure mode
-5. **Recalibrate** — remove underperforming models, verify ensemble composition
-6. **Repeat** with the next batch, carrying forward all improvements
+| Metric | Batch v3 (n=29 matched) | Target (n=500+) |
+|:-------|:------------------------|:-----------------|
+| Mean AUC across conditions | 0.540 | >0.65 |
+| Best performing (cholesterol) | AUC 0.770 | — |
+| Conditions with AUC ≥ 0.60 | 3 / 12 | Majority |
+| Blocklisted PGS models | 71 | Converging |
+| Training pairs generated | 1,434 | 10,000+ |
+| PGP genomes processed | 148 | 1,000+ |
 
-This prioritises stability over speed. Each batch builds on validated improvements from the previous cycle.
+The validation now measures both sensitivity and specificity per condition using proper AUC (Mann-Whitney U), not just concordance checks. See [findings/prs-validation-march-2026.md](findings/prs-validation-march-2026.md) for per-condition breakdowns.
 
-### What We've Found So Far
+### Bayesian Evidence Scoring Pipeline
 
-Validation against 64 PGP participants with medical records has identified several categories of problematic PGS models:
+We now use a **9-source Bayesian evidence scoring system** that goes beyond PRS alone. Each variant is scored across multiple independent evidence databases, with star-weighted contributions:
 
-| Failure Mode | Example | Impact |
-|:-------------|:--------|:-------|
-| **Distribution bias** | Childhood-onset asthma model with population mean at 68th percentile instead of ~50th | Systematic false positives — nearly everyone scores elevated |
-| **Wrong phenotype target** | Rheumatoid *factor* model scored as rheumatoid *arthritis* | Introduces noise from a related but distinct biomarker |
-| **Duplicate models** | Two models from the same 2009 study, both included in ensemble | Overweights a single data source, reduces diversity |
-| **Below polygenic threshold** | Models with <20 variants passing through individual scoring | Not truly polygenic — single-gene effects masquerading as risk scores |
+1. **ClinVar** — pathogenic/likely pathogenic classifications with review star weighting (0-4 stars)
+2. **CADD** — Combined Annotation Dependent Depletion (deleteriousness prediction)
+3. **gnomAD** — population frequency (rare = higher evidence)
+4. **AlphaMissense** — protein structure impact prediction
+5. **ClinGen** — gene-disease validity classifications
+6. **DisGeNET** — disease-gene association scores
+7. **GWAS Catalog** — genome-wide significant associations
+8. **PharmGKB** — pharmacogenomic evidence levels
+9. **SNPedia** — curated variant annotations
 
-Each batch cycle has improved concordance between predicted risk and actual diagnoses. The blocklist has grown from 0 to 54 models across multiple validation rounds.
+Evidence from all sources is combined using log-likelihood ratios, weighted by source quality. This produces a single evidence score per variant-disease pair that accounts for the strength and independence of supporting data.
 
-### Roadmap
+See [findings/bayesian-evidence-pipeline.md](findings/bayesian-evidence-pipeline.md) for the full methodology.
 
-- **Ongoing:** Continue processing PGP batches (~900 remaining), validate after each cycle
-- **Planned:** Add optional self-reported diagnosis collection to the platform, enabling continuous validation from every user who opts in
-- **Planned:** Per-model discrimination metrics (AUROC against our own validated cohort) once sample sizes reach statistical significance (~200+ per trait)
-- **Planned:** Ancestry-specific calibration — current validation is predominantly EUR; expanding to multi-ancestry cohorts
+### Iterative Validation Protocol
+
+Rather than scoring everything at once, we run an **iterative batch validation protocol**:
+
+1. **Score** a batch of ~50-75 PGP participants through the full pipeline
+2. **Validate** PRS predictions against participants' documented diagnoses
+3. **Identify** discordant cases and trace to specific PGS models
+4. **Recalibrate** — block underperforming models, verify ensemble composition
+5. **Repeat** with the next batch, carrying forward all improvements
+
+### Agent Domain Split
+
+Reports are now generated by **8 specialist AI agents** (up from 7), each handling a distinct clinical domain:
+
+| Agent | Domain | Focus |
+|:------|:-------|:------|
+| Cardio | Cardiovascular | Heart disease, stroke, lipids, blood pressure |
+| Cancer+Immune | Oncology & Immunology | Cancer risk, autoimmune conditions |
+| Metabolic | Metabolic | Diabetes, thyroid, obesity, liver |
+| Neuro | Neurological | Cognitive, psychiatric, neurodegeneration |
+| Body | Musculoskeletal & Physical | Bone, joint, anthropometric traits |
+| Protocols | Health Protocols | Screening recommendations, lifestyle interventions |
+| Health Index | Overall Score | Composite health index calibration |
+| Summaries | Executive Summary | Patient-facing narrative synthesis |
 
 ### Training Data Capture & Domain-Specific Model Development
 
-Every genome we process through the platform generates a complete, structured training record:
+Every genome processed generates a complete, structured training record:
 
 - **Scored inputs** — PRS results, pathogenic variants, pharmacogenomic phenotypes, GWAS associations, pre-digested and structured
-- **Reasoning traces** — full chain-of-thought from each specialist AI agent as it interprets the genetic data, weighs evidence, and forms clinical conclusions
-- **Structured outputs** — domain-specific JSON reports (cardiovascular, oncology, metabolic, neurological, pharmacogenomics, health index)
-- **Final narrative** — the rendered patient-facing report with risk stratification, screening recommendations, and protocols
+- **Reasoning traces** — full chain-of-thought from each specialist AI agent
+- **Structured outputs** — domain-specific JSON reports per agent
+- **Final narrative** — patient-facing report with risk stratification and protocols
 
-This corpus is growing with every batch we process. As of March 2026, we have **127 complete training records**, each containing multiple specialist agent traces across distinct clinical domains — yielding **~890 domain-specific reasoning examples** and growing.
+As of March 2026, we have **1,434 training pairs** across 42 unique participants and 8 agent types (263MB). Each pair contains the full prompt (35-45KB of structured genetic data) and the complete agent output with chain-of-thought reasoning.
 
-**The goal:** train a purpose-built, lightweight model specifically for genomic health interpretation that outperforms general-purpose foundation models on this task. Not a general chatbot — a specialist that reasons through genetic evidence the way a clinical geneticist would, but runs on modest infrastructure without per-report API costs.
-
-A domain-specific model trained on thousands of validated, high-quality interpretation examples — where each training sample has been checked against real phenotype data — has a realistic path to exceeding the accuracy of models that were trained on the entire internet but have no particular depth in clinical genomics.
+**The goal:** train a purpose-built model specifically for genomic health interpretation that outperforms general-purpose foundation models on this task, running on modest infrastructure without per-report API costs.
 
 We will open-source the model and publish the training methodology when it is ready.
 
-### Validation Metrics
+### Roadmap
 
-| Metric | Current (n=64) | Target (n=500+) |
-|:-------|:---------------|:-----------------|
-| PRS-phenotype concordance | 51.4% | >70% |
-| Blocklisted PGS models | 54 | Converging |
-| Active ensemble traits | 479 | Stable |
-| PGP genomes processed | 127 | 1,000+ |
+- **Ongoing:** Continue processing PGP batches (~850 remaining), validate after each cycle
+- **Next batch:** After quota reset (Mar 27), process next ~75 genomes
+- **Planned:** Per-model discrimination metrics (AUROC) once sample sizes reach ~200+ per trait
+- **Planned:** Ancestry-specific calibration — expanding beyond EUR cohorts
+- **Planned:** Optional self-reported diagnosis collection on platform for continuous validation
 
 ---
 
@@ -123,7 +146,8 @@ Standalone Python scripts for PRS research. All work with publicly available dat
 |:---------|:------|:-------------|
 | **Data Collection** | `scrape-pgp.py` `download-pgs.py` `fetch-ancestry.py` | Scrape PGP phenotypes, bulk download PGS Catalog models, fetch ancestry metadata |
 | **Scoring** | `gpu-scorer.py` `build-distributions.py` | GPU-accelerated PRS via PyTorch sparse matrix multiplication, 1000 Genomes population distributions |
-| **Validation** | `validate-opensnp.py` `validate-pgp.py` | Validated against 4,257 OpenSNP samples and 943 PGP genomes with medical records |
+| **Validation** | `validate-opensnp.py` `validate-pgp.py` `validate-prs-phenotype.py` | Validated against 4,257 OpenSNP samples and 943 PGP genomes; AUC/sensitivity/specificity per condition |
+| **Evidence** | `build-clinvar-stars.py` `sim-health-index.py` | ClinVar VCF star rating enrichment, health index simulation and calibration |
 | **QC** | `allele-alignment.py` `condition-mapper.py` | Strand-ambiguous SNP handling, clinical text-to-trait mapping (170+ patterns) |
 
 ---
@@ -132,16 +156,16 @@ Standalone Python scripts for PRS research. All work with publicly available dat
 
 <table>
 <tr>
-<td align="center" width="16%"><strong>3,550+</strong><br><sub>PGS Models</sub></td>
+<td align="center" width="16%"><strong>5,251</strong><br><sub>PGS Models</sub></td>
 <td align="center" width="16%"><strong>400K+</strong><br><sub>ClinVar Variants</sub></td>
 <td align="center" width="16%"><strong>34</strong><br><sub>CPIC Genes</sub></td>
 <td align="center" width="16%"><strong>28M</strong><br><sub>Imputed Variants</sub></td>
 <td align="center" width="16%"><strong>16K+</strong><br><sub>SNPedia Entries</sub></td>
-<td align="center" width="16%"><strong>7</strong><br><sub>AI Agents</sub></td>
+<td align="center" width="16%"><strong>8</strong><br><sub>AI Agents</sub></td>
 </tr>
 </table>
 
-**16 integrated databases** — PGS Catalog, ClinVar, MyVariant.info (CADD + gnomAD), MyDisease.info, MyChem.info, CPIC, DisGeNET, GWAS Catalog, Orphanet, PharmGKB, AlphaMissense, ClinGen, SNPedia, 1000 Genomes — unified in a 2GB SQLite database indexed by rsID.
+**26 evidence tables across 16 integrated databases** — PGS Catalog, ClinVar (with star ratings), MyVariant.info (CADD + gnomAD), MyDisease.info, MyChem.info, CPIC, DisGeNET, GWAS Catalog, Orphanet, PharmGKB, AlphaMissense, ClinGen, SNPedia, 1000 Genomes — unified in a 2GB SQLite database indexed by rsID, feeding into a Bayesian evidence scoring pipeline.
 
 **Full database documentation →** [HelixDocuments](https://github.com/HelixGenomics/HelixDocuments)
 
